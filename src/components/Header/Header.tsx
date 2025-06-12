@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 interface Props {
   addTodo: (title: string) => Promise<void>;
   isInputDisabled: boolean;
-  errorMessage: string | null;
 }
 
 export const Header: React.FC<Props> = ({ addTodo, isInputDisabled }) => {
