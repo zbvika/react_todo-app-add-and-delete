@@ -1,10 +1,11 @@
 import React from 'react';
-import classNames from 'classnames';
+import cn from 'classnames';
 import { FilterType } from '../../types/FilterType';
+import { FilterTypeValues } from '../../types/FilterType';
 
 interface Props {
-  filter: FilterType;
-  setFilter: (filter: FilterType) => void;
+  filter: FilterTypeValues;
+  setFilter: (filter: FilterTypeValues) => void;
   countOfActiveTodos: number;
   deleteCompletedTodos: () => void;
   hasCompletedTodos: boolean;
@@ -24,19 +25,17 @@ export const Footer: React.FC<Props> = ({
       </span>
 
       <nav className="filter" data-cy="Filter">
-        {Object.keys(FilterType).map(type => (
+        {Object.entries(FilterType).map(([text, value]) => (
           <a
-            key={type}
+            key={value}
             href="#/"
-            className={classNames('filter__link', {
-              selected: filter === FilterType[type as keyof typeof FilterType],
+            className={cn('filter__link', {
+              selected: filter === value,
             })}
-            data-cy={`FilterLink${FilterType[type as keyof typeof FilterType]}`}
-            onClick={() =>
-              setFilter(FilterType[type as keyof typeof FilterType])
-            }
+            data-cy={`FilterLink${text}`}
+            onClick={() => setFilter(value)}
           >
-            {FilterType[type as keyof typeof FilterType]}
+            {text}
           </a>
         ))}
       </nav>

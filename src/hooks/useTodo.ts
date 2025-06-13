@@ -5,24 +5,28 @@ import { Todo } from '../types/Todo';
 export function useTodo() {
   const [data, setData] = useState<Todo[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isTempTodo, setIsTempTodo] = useState<Todo | null>(null);
+  const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [isInputDisabled, setIsInputDisabled] = useState(false);
   const [isTodoDeleted, setIsTodoDeleted] = useState<number | null>(null);
 
-  const showError = (message: string) => {
-    setErrorMessage(message);
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
 
-    setTimeout(() => {
-      setErrorMessage(null);
-    }, 3000);
-  };
+      return () => clearTimeout(timer);
+    }
+
+    return;
+  }, [errorMessage]);
 
   useEffect(() => {
     setErrorMessage(null);
     todoService
       .getTodos()
       .then(setData)
-      .catch(() => showError('Unable to load todos'));
+      .catch(() => setErrorMessage('Unable to load todos'));
   }, []);
 
   const deleteTodo = (todoId: number) => {
@@ -30,7 +34,7 @@ export function useTodo() {
     todoService
       .deleteTodos(todoId)
       .then(() => setData(prev => prev.filter(todo => todo.id !== todoId)))
-      .catch(() => showError('Unable to delete a todo'))
+      .catch(() => setErrorMessage('Unable to delete a todo'))
       .finally(() => setIsTodoDeleted(null));
   };
 
@@ -55,13 +59,13 @@ export function useTodo() {
     )
       .then(results => {
         const successIds = results
-          .filter(r => r.status === 'fulfilled')
-          .map(r => (r as PromiseFulfilledResult<number>).value);
+          .filter(result => result.status === 'fulfilled')
+          .map(result => (result as PromiseFulfilledResult<number>).value);
 
         const isSomeFailed = results.some(r => r.status === 'rejected');
 
         if (isSomeFailed) {
-          showError('Unable to delete a todo');
+          setErrorMessage('Unable to delete a todo');
         }
 
         setData(prev => prev.filter(todo => !successIds.includes(todo.id)));
@@ -72,29 +76,15 @@ export function useTodo() {
       });
   };
 
-  const addTodo = (title: string) => {
-    const trimmedTitle = title.trim();
-
-    if (!trimmedTitle) {
-      showError('Title should not be empty');
-
-      return Promise.resolve();
-    }
-
-    const newTodo: Omit<Todo, 'id'> = {
-      userId: todoService.USER_ID,
-      title: trimmedTitle,
-      completed: false,
-    };
-
-    const tempTodo: Todo = {
+  const addTodo = (newTodo: Omit<Todo, 'id'>) => {
+    const tTodo: Todo = {
       id: 0,
       userId: todoService.USER_ID,
-      title: trimmedTitle,
+      title: newTodo.title,
       completed: false,
     };
 
-    setIsTempTodo(tempTodo);
+    setTempTodo(tTodo);
     setIsInputDisabled(true);
 
     return todoService
@@ -102,12 +92,8 @@ export function useTodo() {
       .then(todoFromServer => {
         setData(prev => [...prev, todoFromServer]);
       })
-      .catch(er => {
-        showError('Unable to add a todo');
-        throw er;
-      })
       .finally(() => {
-        setIsTempTodo(null);
+        setTempTodo(null);
         setIsInputDisabled(false);
       });
   };
@@ -115,7 +101,7 @@ export function useTodo() {
   return {
     data,
     errorMessage,
-    isTempTodo,
+    tempTodo,
     isInputDisabled,
     isTodoDeleted,
     hasCompletedTodos,

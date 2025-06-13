@@ -1,13 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
+import { Todo } from '../../types/Todo';
+import * as todoService from '../../api/todos';
 
 interface Props {
-  addTodo: (title: string) => Promise<void>;
   isInputDisabled: boolean;
+  onSubmit: (todo: Omit<Todo, 'id'>) => Promise<void>;
+  setErrorMessage: (error: string | null) => void;
 }
 
-export const Header: React.FC<Props> = ({ addTodo, isInputDisabled }) => {
+export const Header: React.FC<Props> = ({
+  onSubmit,
+  isInputDisabled,
+  setErrorMessage,
+}) => {
   const [title, setTitle] = useState('');
   const focusRef = useRef<HTMLInputElement>(null);
+
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(event.target.value.trimStart());
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle) {
+      setErrorMessage('Title should not be empty');
+
+      return;
+    }
+
+    onSubmit({
+      userId: todoService.USER_ID,
+      title: trimmedTitle,
+      completed: false,
+    })
+      .then(() => {
+        setTitle('');
+      })
+      .catch(() => {
+        setErrorMessage('Unable to add a todo');
+      });
+  };
 
   useEffect(() => {
     if (focusRef.current) {
@@ -24,14 +59,7 @@ export const Header: React.FC<Props> = ({ addTodo, isInputDisabled }) => {
         data-cy="ToggleAllButton"
       />
 
-      <form
-        onSubmit={e => {
-          e.preventDefault();
-          addTodo(title)
-            .then(() => setTitle(''))
-            .catch(() => {});
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <input
           ref={focusRef}
           data-cy="NewTodoField"
@@ -39,7 +67,7 @@ export const Header: React.FC<Props> = ({ addTodo, isInputDisabled }) => {
           className="todoapp__new-todo"
           placeholder="What needs to be done?"
           value={title}
-          onChange={event => setTitle(event.target.value.trimStart())}
+          onChange={handleTitleChange}
           disabled={isInputDisabled}
         />
       </form>

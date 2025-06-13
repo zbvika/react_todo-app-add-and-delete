@@ -1,40 +1,52 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React from 'react';
 import { Todo } from '../../types/Todo';
-import classNames from 'classnames';
+import cn from 'classnames';
 
 interface Props {
-  isTempTodo: Todo | null;
+  todo: Todo;
+  deleteTodo: (todoId: number) => void;
+  isDeleting: boolean;
+  isTemporary?: boolean;
 }
 
-export const TodoItem: React.FC<Props> = ({ isTempTodo }) => {
+export const TodoItem: React.FC<Props> = ({
+  todo,
+  deleteTodo,
+  isDeleting,
+  isTemporary,
+}) => {
   return (
-    <div data-cy="Todo" className="todo">
+    <div data-cy="Todo" className={cn('todo', { completed: todo.completed })}>
       <label className="todo__status-label">
         <input
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          disabled
+          checked={todo.completed}
+          disabled={isTemporary}
         />
       </label>
 
       <span data-cy="TodoTitle" className="todo__title">
-        {isTempTodo?.title}
+        {todo.title}
       </span>
 
       <button
         type="button"
         className="todo__remove"
         data-cy="TodoDelete"
-        disabled
+        onClick={() => deleteTodo(todo.id)}
+        disabled={isTemporary}
       >
         ×
       </button>
 
       <div
         data-cy="TodoLoader"
-        className={classNames('modal', 'overlay', { 'is-active': isTempTodo })}
+        className={cn('modal', 'overlay', {
+          'is-active': isDeleting || isTemporary,
+        })}
       >
         <div className="modal-background has-background-white-ter" />
         <div className="loader" />

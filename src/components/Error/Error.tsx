@@ -21,8 +21,6 @@ export const Error: React.FC<Props> = ({ errorMessage, setErrorMessage }) => {
         onClick={() => setErrorMessage(null)}
       />
       {errorMessage}
-
-      {/* Unable to update a todo */}
     </div>
   );
 };

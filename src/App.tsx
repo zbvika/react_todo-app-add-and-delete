@@ -13,7 +13,7 @@ export const App: React.FC = () => {
   const {
     data: todos,
     errorMessage,
-    isTempTodo,
+    tempTodo,
     isInputDisabled,
     isTodoDeleted,
     hasCompletedTodos,
@@ -36,15 +36,15 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <Header
-          addTodo={addTodo}
+          onSubmit={addTodo}
           isInputDisabled={isInputDisabled}
-          errorMessage={errorMessage}
+          setErrorMessage={setErrorMessage}
         />
 
         <TodoList
           todos={visibleTodos}
           deleteTodo={deleteTodo}
-          isTempTodo={isTempTodo}
+          tempTodo={tempTodo}
           isTodoDeleted={isTodoDeleted}
         />
 
